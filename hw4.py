@@ -39,7 +39,7 @@ def get_nonlocal_links(url):
 
     # TODO: implement
     links = get_links(url)
-    filtered = []
+    filtered = [link for link in links if parse.urlparse(link[0]).hostname != parse.urlparse(url).hostname]
     return filtered
 
 
