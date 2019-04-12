@@ -39,9 +39,11 @@ def get_nonlocal_links(url):
 
     # TODO: implement
     links = get_links(url)
-    filtered = [link for link in links if parse.urlparse(link[0]).hostname != parse.urlparse(url).hostname]
+    filtered = [link for link in links if not urls_same_host(link[0], url)]
     return filtered
 
+def urls_same_host(url1, url2):
+    return parse.urlparse(url1).hostname == parse.urlparse(url2).hostname
 
 def crawl(root, wanted_content=[], within_domain=True):
     '''Crawl the url specified by `root`.
@@ -55,6 +57,7 @@ def crawl(root, wanted_content=[], within_domain=True):
 
     visited = []
     extracted = []
+    url_set = set()
 
     while not queue.empty():
         url = queue.get()
@@ -70,7 +73,10 @@ def crawl(root, wanted_content=[], within_domain=True):
                 extractlog.debug(ex)
 
             for link, title in parse_links(url, html):
-                queue.put(link)
+                if (link not in url_set) and (urls_same_host(root, link) or not within_domain):
+                    #print(len(visited), queue.qsize(), link)
+                    url_set.add(link)
+                    queue.put(link)
 
         except Exception as e:
             print(e, url)
