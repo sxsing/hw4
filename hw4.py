@@ -45,6 +45,12 @@ def get_nonlocal_links(url):
 def urls_same_host(url1, url2):
     return parse.urlparse(url1).hostname == parse.urlparse(url2).hostname
 
+def content_match(content_type, wanted_list):
+    for wanted_content in wanted_list:
+        if content_type in wanted_content:
+            return True
+    return False
+
 def crawl(root, wanted_content=[], within_domain=True):
     '''Crawl the url specified by `root`.
     `wanted_content` is a list of content types to crawl
@@ -68,13 +74,14 @@ def crawl(root, wanted_content=[], within_domain=True):
             visited.append(url)
             visitlog.debug(url)
 
-            for ex in extract_information(url, html):
-                extracted.append(ex)
-                extractlog.debug(ex)
+            if req.headers['Content-Type'] and content_match(req.headers['Content-Type'], wanted_content):
+                for ex in extract_information(url, html):
+                    extracted.append(ex)
+                    extractlog.debug(ex)
 
             for link, title in parse_links(url, html):
                 if (link not in url_set) and (urls_same_host(root, link) or not within_domain):
-                    #print(len(visited), queue.qsize(), link)
+                    print(len(visited), queue.qsize(), link)
                     url_set.add(link)
                     queue.put(link)
 
@@ -110,7 +117,7 @@ def main():
     nonlocal_links = get_nonlocal_links(site)
     writelines('nonlocal.txt', nonlocal_links)
 
-    visited, extracted = crawl(site)
+    visited, extracted = crawl(site, wanted_content='html')
     writelines('visited.txt', visited)
     writelines('extracted.txt', extracted)
 
