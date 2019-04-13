@@ -68,7 +68,7 @@ def crawl(root, wanted_content=[], within_domain=True):
     while not queue.empty():
         url = queue.get()
         try:
-            req = request.urlopen(url)
+            req = request.urlopen(url, timeout=5)
             html = req.read()
 
             visited.append(url)
